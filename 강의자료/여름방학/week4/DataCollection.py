@@ -131,6 +131,6 @@ if __name__=='__main__':
         
         store_path = './data/'
         stockName = "컴투스"
-        d = DataCollection(stockName, 20210101, 20210201, store_path)
-        d.run('분봉', 5)
+        d = DataCollection(stockName, startDay, endDay, store_path)
+        d.run(collect_type, period)
     """
