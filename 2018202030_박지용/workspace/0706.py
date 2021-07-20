@@ -1,4 +1,4 @@
-from pandas import Series, DataFrame
+
 import pandas as pd
 import numpy as np
 
@@ -11,3 +11,4 @@ df_data['sma5'] = df_data['종가'].rolling(5).mean()
 
 
 print(df_data)
+print(df_data['종목명'])
