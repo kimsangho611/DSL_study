@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-# 경로설정
+# 경로설정(본인 컴퓨터의 파일 위치를 잘 지정해주세요)
 location = "C:\\Users\\82105\\문서\\조하빈\\주식스터디\\DSL_study\\강의자료\\여름방학\\week2\\data\\컴투스.csv"
 
 df_raw = pd.read_csv(location, names=[
@@ -20,46 +20,18 @@ for i in range(0, len(df)):
     if i >= len(df)-mfi_period:
         continue
     else:
-        PMF = 0
-        NMF = 0
+        pmf = 0
+        nmf = 0
         for j in range(0, 14):
             if df.loc[i+j, '평균가격'] > df.loc[i+j+1, '평균가격']:  # 양인 경우
-                PMF += df.loc[i+j, 'mf']
+                pmf += df.loc[i+j, 'mf']
             elif df.loc[i+j, '평균가격'] < df.loc[i+j+1, '평균가격']:  # 음인 경우
-                NMF += df.loc[i+j, 'mf']
-        if NMF == 0:
+                nmf += df.loc[i+j, 'mf']
+        if nmf == 0:
             df.loc[i, 'MFI'] = 100
         else:
-            MFR = PMF/NMF
-            df.loc[i, 'MFI'] = 100-100/(1+MFR)
+            mfr = pmf/nmf
+            df.loc[i, 'MFI'] = 100-100/(1+mfr)
 
 df.to_excel('df.xlsx')
 print(df.head(40))
-
-
-# # MFI 추가
-# mfi_period = 14
-
-# pmf = []
-# nmf = []
-# for i in range(0, len(df)-1):
-#     if df.loc[i, '평균가격'] > df.loc[i+1, '평균가격']:  # 양인 경우
-#         pmf.append(df.loc[i, 'mf'])
-#         nmf.append(0)
-#     elif df.loc[i, '평균가격'] < df.loc[i+1, '평균가격']:  # 음인 경우
-#         nmf.append(df.loc[i, 'mf'])
-#         pmf.append(0)
-#     else:
-#         pmf.append(0)
-#         nmf.append(0)
-
-# print("mfi 계산중...")
-# for i in range(0, 100):
-#     if i > len(df)-mfi_period:
-#         continue
-#     else:
-#         PMF = sum(pmf[i:i+mfi_period])
-#         NMF = sum(nmf[i:i+mfi_period])
-#         df.loc[i, 'MFI'] = 100*PMF/(PMF+NMF)
-
-# print(df)
