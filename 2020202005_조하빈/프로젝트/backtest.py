@@ -14,6 +14,7 @@ def mfi(data: pd.DataFrame):
     while(current_index):
         previous_mfi = data.loc[current_index-1, 'MFI']
         current_mfi = data.loc[current_index, 'MFI']
+
         # 20 상향돌파시 매수
         if(previous_mfi <= 20 and current_mfi > 20):
             stock_list.append(data.loc[current_index, '평균가격'])
@@ -38,6 +39,6 @@ def mfi(data: pd.DataFrame):
 
 
 df = pd.DataFrame(pd.read_excel('df.xlsx', index_col=0))
-# df['MFI'] = df['MFI'].shift(1)
+df['MFI'] = df['MFI'].shift(1)
 
 mfi(df)
