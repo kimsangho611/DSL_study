@@ -21,6 +21,16 @@ DEST = {
     #     'WEEKLY': False,
     #     'MONTHLY': '20210720'
     # },
+    '078340': {
+        'MINUTE': [],
+        'DAILY': False,
+    },
+    '005930': {
+        'MINUTE': [],
+        'DAILY': False,
+        'WEEKLY': False,
+        'MONTHLY': False
+    },
 }
 
 
