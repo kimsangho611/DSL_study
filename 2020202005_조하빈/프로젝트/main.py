@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 
-# 경로설정(본인 컴퓨터의 파일 위치를 잘 지정해주세요)
 location = "C:\\Users\\82105\\문서\\조하빈\\주식스터디\\DSL_study\\강의자료\\여름방학\\week2\\data\\컴투스.csv"
 
-df_raw = pd.read_csv(location, names=[
-    '종목명', '종목코드', '거래일', '거래시각', '시가', '고가', '저가', '종가', '거래량'], header=None, encoding='CP949')
+# df_raw = pd.read_csv(location, names=[
+#     '종목명', '종목코드', '거래일', '거래시각', '시가', '고가', '저가', '종가', '거래량'], header=None, encoding='CP949')
 
+df_raw = pd.read_excel(
+    'LG전자(066570)_일봉.xlsx', index_col=0)
 df = pd.DataFrame(df_raw, copy=True)
 
 df['평균가격'] = (df['고가']+df['저가']+df['종가'])/3
@@ -32,6 +33,7 @@ for i in range(0, len(df)):
         else:
             mfr = pmf/nmf
             df.loc[i, 'MFI'] = 100-100/(1+mfr)
+    print(i, len(df))
 
 df.to_excel('df.xlsx')
 print(df.head(40))
