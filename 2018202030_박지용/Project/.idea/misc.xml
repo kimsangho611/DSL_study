@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+<<<<<<< HEAD
+<<<<<<< HEAD:2018202030_박지용/Project/.idea/misc.xml
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (py38_32) (2)" project-jdk-type="Python SDK" />
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (py39_32)" project-jdk-type="Python SDK" />
+>>>>>>> upstream/main:2020202064_전혜림/Project/.idea/misc.xml
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (py38_32) (2)" project-jdk-type="Python SDK" />
+>>>>>>> upstream/main
 </project>
