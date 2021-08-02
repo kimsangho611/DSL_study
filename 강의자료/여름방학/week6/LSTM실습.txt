@@ -1,0 +1,104 @@
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import csv
+import matplotlib.pyplot as plt
+
+
+df_price = pd.read_csv('contentdriveMyDrive주가예측거시경제지표_kospi200_스케일링.csv', encoding='cp949')
+
+
+print(df_price.describe())
+
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler()
+scale_cols = df_price.columns
+print(scale_cols)
+df_scaled = scaler.fit_transform(df_price[scale_cols])
+
+df_scaled = pd.DataFrame(df_scaled)
+df_scaled.columns = scale_cols
+
+print(df_scaled)
+
+TEST_SIZE = 400
+
+train = df_scaled[-TEST_SIZE]
+test = df_scaled[-TEST_SIZE]
+ 
+# print(train)
+# print(test)
+
+def make_dataset(data, label, window_size=20)
+    feature_list = []
+    label_list = []
+    for i in range(len(data) - window_size)
+        feature_list.append(np.array(data.iloc[ii+window_size]))
+        label_list.append(np.array(label.iloc[i+window_size]))
+
+    # print(feature_list)
+    # print(label_list)
+    return np.array(feature_list), np.array(label_list)
+
+feature_cols = ['Open','High','Low','Volume']
+label_cols = ['Close']
+
+train_feature = train[feature_cols]
+train_label = train[label_cols]
+
+test_feature = test[feature_cols]
+test_label = test[label_cols]
+
+# train dataset
+train_feature, train_label = make_dataset(train_feature, train_label, 20)
+
+# train, validation set 생성
+from sklearn.model_selection import train_test_split
+x_train, x_valid, y_train, y_valid = train_test_split(train_feature, train_label, test_size=0.2)
+
+print(x_train.shape)
+print(x_valid.shape)
+# ((1432, 20, 16), (359, 20, 16))
+# num, window , column
+
+# test dataset (실제 예측 해볼 데이터)
+test_feature, test_label = make_dataset(test_feature, test_label, 20)
+print(test_feature.shape)
+print(test_label.shape)
+# ((380, 20, 16), (380, 1))
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.layers import LSTM
+
+model = Sequential()
+model.add(LSTM(16, 
+               input_shape=(train_feature.shape[1], train_feature.shape[2]), 
+               activation='relu', 
+               return_sequences=False)
+          )
+model.add(Dense(1))
+
+model.summary()
+
+model.compile(loss='mean_squared_error', optimizer='adam')
+# early_stop = EarlyStopping(monitor='val_loss', patience=5)
+# filename = os.path.join(model_path, 'tmp_checkpoint.h5')
+# checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+
+history = model.fit(x_train, y_train, 
+                    epochs=100, 
+                    batch_size=16,
+                    validation_data=(x_valid, y_valid))
+                    # callbacks=[early_stop, checkpoint])
+
+
+pred = model.predict(test_feature)
+
+plt.figure(figsize=(12, 9))
+plt.plot(test_label, label='actual')
+plt.plot(pred, label='prediction')
+plt.legend()
+plt.show()
