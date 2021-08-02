@@ -42,7 +42,7 @@ class Trade:
         return True
 
 def SetInitial():
-    data = pd.read_csv("./data/삼성전자_일봉.csv", header=None,
+    data = pd.read_csv("./data/삼성바이오로직스_일봉.csv", header=None,
                        names=['종목명', '종목코드', '날짜', '시가', '고가', '저가', '종가', '거래량'], encoding="CP949")
     data = data.sort_values(by=['날짜'])
     data = data.reset_index(drop=True)
@@ -52,6 +52,18 @@ def SetInitial():
         trading_vol += data['거래량'].iloc[k]
     trading_vol /= len(data.index)
 
+    OBV = []
+    OBV.append(0)
+    for i in range(1, len(data.index)):
+        if data['종가'].iloc[i] > data['종가'].iloc[i - 1]:
+            OBV.append(OBV[-1] + data['거래량'].iloc[i])
+        elif data['종가'].iloc[i] < data['종가'].iloc[i - 1]:
+            OBV.append(OBV[-1] - data['거래량'].iloc[i])
+        else:
+            OBV.append(OBV[-1])
+    data['OBV'] = OBV
+    data['OBV_ema'] = data['OBV'].ewm(span=12).mean()
+
     data['ema12'] = data['종가'].ewm(span=12).mean()
     data['ema26'] = data['종가'].ewm(span=26).mean()
     data['MACD'] = data.apply(lambda x: (x["ema12"] - x["ema26"]), axis=1)
@@ -59,10 +71,23 @@ def SetInitial():
     data["MACD_oscillator"] = data.apply(lambda x: (x["MACD"] - x["MACD_signal"]), axis=1)
     data["MACD_sign"] = data.apply(lambda x: ("매수" if (0 > x["MACD"] > x["MACD_signal"])
                                               else ("매도" if 0 < x["MACD"] < x["MACD_signal"] else 0)), axis=1)
+
     data["MACD_sign_with_volume"] = data.apply(lambda x: (
-        "매수" if (0 > x["MACD"] > x["MACD_signal"] and x['거래량'] >= trading_vol)
-        else ("매도" if 0 < x["MACD"] < x["MACD_signal"] and x['거래량'] >= trading_vol else 0)), axis=1)
+        "매수" if (0 > x["MACD"] > x["MACD_signal"] and x['거래량'] >= trading_vol) else (
+            "매도" if 0 < x["MACD"] < x["MACD_signal"] and x['거래량'] >= trading_vol else 0)), axis=1)
+
+    data["MACD_sign_with_OBV"] = data.apply(lambda x: (
+        "매수" if (0 > x["MACD"] > x["MACD_signal"] and x['OBV'] > x['OBV_ema']) else (
+            "매도" if 0 < x["MACD"] < x["MACD_signal"] and x['OBV'] < x['OBV_ema'] else 0)), axis=1)
+
+    data['vol12'] = data['거래량'].ewm(span=12).mean()
+    data['vol26'] = data['거래량'].ewm(span=26).mean()
+    data['volume'] = data.apply(lambda x: (x["vol12"] - x["vol26"]), axis=1)
+    data["MACD_sign_with_volume_cross"] = data.apply(lambda x: (
+        "매수" if (x["MACD_signal"] < x["MACD"] < 0 < x['volume']) else (
+            "매도" if 0 < x["MACD"] < x["MACD_signal"] and x['volume'] > 0 else 0)), axis=1)
     return data
+
 
 """
 plt.rc('font', family='Malgun Gothic')
@@ -107,30 +132,31 @@ testing = Trade(initial_money)
 
 sell_count = 0
 buy_count = 0
+strategy = stock_data['MACD_sign_with_OBV']
 
 for i in range(len(stock_data.index)):
-    if stock_data['MACD_sign_with_volume'].iloc[i] == '매수' or stock_data['MACD_sign_with_volume'].iloc[i] == '매도':
+    if strategy.iloc[i] == '매수' or strategy.iloc[i] == '매도':
         print("\033[0m", end="")
-        if stock_data['MACD_sign_with_volume'].iloc[i] == '매수':
+        if strategy.iloc[i] == '매수':
             if testing.BuyStock(stock_data['시가'].iloc[i]):
                 print('\033[95m', end="")
-                print(str(stock_data['MACD_sign_with_volume'].iloc[i]) + " " + str(stock_data['날짜'].iloc[i])
+                print(str(strategy.iloc[i]) + " " + str(stock_data['날짜'].iloc[i])
                       + " 시가 : " + str(stock_data['시가'].iloc[i]), end="")
                 print("\n자금 : " + str(testing.initial_funds) + " 보유 주식 : " + str(testing.stock_amount) + '\n')
                 buy_count += 1
 
-        elif stock_data['MACD_sign_with_volume'].iloc[i] == '매도':
+        elif strategy.iloc[i] == '매도':
             if testing.SellStock(stock_data['시가'].iloc[i]):
                 print('\033[96m', end="")
-                print(str(stock_data['MACD_sign_with_volume'].iloc[i]) + " " + str(stock_data['날짜'].iloc[i])
+                print(str(strategy.iloc[i]) + " " + str(stock_data['날짜'].iloc[i])
                       + " 시가 : " + str(stock_data['시가'].iloc[i]), end="")
                 print("\n자금 : " + str(testing.initial_funds) + " 보유 주식 : " + str(testing.stock_amount) + '\n')
                 sell_count += 1
 
     elif i == len(stock_data.index) - 1:
-        testing.SellStock(stock_data['시가'].iloc[i])
-        sell_count += 1
-        print("매도 " + str(stock_data['날짜'].iloc[i]) + " " + " 시가 : " + str(stock_data['시가'].iloc[i]))
+        if testing.SellStock(stock_data['시가'].iloc[i]):
+            sell_count += 1
+            print("매도 " + str(stock_data['날짜'].iloc[i]) + " " + " 시가 : " + str(stock_data['시가'].iloc[i]))
 
 print("\nsell_count : " + str(sell_count) + "\nbuy_count : " + str(buy_count))
 print("before investment : " + str(initial_money))
