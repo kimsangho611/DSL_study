@@ -4,3 +4,7 @@
 
 # 신경망 첫걸음
 https://www.slideshare.net/gtko/ss-144045458
+
+
+# 신경망(퍼셉트론) 관련 예제
+- https://playground.tensorflow.org/
