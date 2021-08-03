@@ -21,15 +21,10 @@ DEST = {
     #     'WEEKLY': False,
     #     'MONTHLY': '20210720'
     # },
-    '078340': {
-        'MINUTE': [],
-        'DAILY': False,
-    },
-    '005930': {
-        'MINUTE': [],
-        'DAILY': False,
-        'WEEKLY': False,
-        'MONTHLY': False
+    '004410': {
+        'MINUTE': False,
+        'DAILY': '20210801',
+        'WEEKLY': '20210801'
     },
 }
 
@@ -111,7 +106,7 @@ class Kiwoom(QAxWidget):
                 self._receiveTr_eventloop.exec()
 
             self._df = pd.DataFrame(self._li, columns=[
-                                    '', '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
+                '', '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
             self._df['종목코드'] = code
             self._df['종목명'] = name
             return self._df[['종목코드', '종목명', '일자',  '시가', '고가', '저가', '종가', '거래량']]
@@ -141,11 +136,13 @@ class Kiwoom(QAxWidget):
                 self._receiveTr_eventloop.exec()
 
             self._df = pd.DataFrame(self._li, columns=[
-                '종가', '거래량', '체결시간', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
+                '종가', '거래량', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
             self._df['종목코드'] = code
             self._df['종목명'] = name
 
-            return self._df[['종목코드', '종목명', '체결시간',  '시가', '고가', '저가', '종가', '거래량']]
+            self._df.loc[:, ['종가', '시가', '고가', '저가']] = self._df.loc[:, [
+                '종가', '시가', '고가', '저가']].applymap(lambda x: abs(int(x)))
+            return self._df[['종목코드', '종목명', '일자',  '시가', '고가', '저가', '종가', '거래량']]
 
         else:
             print("종목코드가 잘못되었습니다.")
@@ -172,7 +169,7 @@ class Kiwoom(QAxWidget):
                 self._receiveTr_eventloop.exec()
 
             self._df = pd.DataFrame(self._li, columns=[
-                                    '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
+                '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
             self._df['종목코드'] = code
             self._df['종목명'] = name
             return self._df[['종목코드', '종목명', '일자',  '시가', '고가', '저가', '종가', '거래량']]
@@ -202,7 +199,7 @@ class Kiwoom(QAxWidget):
                 self._receiveTr_eventloop.exec()
 
             self._df = pd.DataFrame(self._li, columns=[
-                                    '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
+                '종가', '거래량', '', '일자', '시가', '고가', '저가', '', '', '', '', '', '', '']).drop('', axis=1)
             self._df['종목코드'] = code
             self._df['종목명'] = name
             return self._df[['종목코드', '종목명', '일자',  '시가', '고가', '저가', '종가', '거래량']]
