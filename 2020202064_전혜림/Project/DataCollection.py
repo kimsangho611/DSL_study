@@ -137,6 +137,6 @@ if __name__ == '__main__':
         """
 
         store_path = './data/'
-        stockName = "삼성바이오로직스"
+        stockName = "컴투스"
         d = DataCollection(stockName, 20180101, 20210101, store_path)
         d.run('일봉', 1)

@@ -17,6 +17,7 @@ class Trade:
         amount_buy = self.investable_funds // stock_price
         if amount_buy <= 0:
             return False
+
         commission_buy = stock_price * amount_buy * commission
         if self.investable_funds - stock_price * amount_buy - commission_buy < 0:
             while True:
@@ -42,7 +43,7 @@ class Trade:
         return True
 
 def SetInitial():
-    data = pd.read_csv("./data/삼성바이오로직스_일봉.csv", header=None,
+    data = pd.read_csv("./data/컴투스_일봉.csv", header=None,
                        names=['종목명', '종목코드', '날짜', '시가', '고가', '저가', '종가', '거래량'], encoding="CP949")
     data = data.sort_values(by=['날짜'])
     data = data.reset_index(drop=True)
@@ -86,29 +87,31 @@ def SetInitial():
     data["MACD_sign_with_volume_cross"] = data.apply(lambda x: (
         "매수" if (x["MACD_signal"] < x["MACD"] < 0 < x['volume']) else (
             "매도" if 0 < x["MACD"] < x["MACD_signal"] and x['volume'] > 0 else 0)), axis=1)
+
     return data
 
+stock_data = SetInitial()
+strategy = stock_data['MACD_sign_with_OBV']
 
-"""
 plt.rc('font', family='Malgun Gothic')
 plt.rcParams['axes.unicode_minus'] = False
 
 xtick = []
-for i in np.arange(0, 64, 8):
+for i in np.arange(0, 700, 50):
     xtick.append(str(stock_data['날짜'].iloc[i]))
-
+"""
 # MACD, MACD signal chart
 plt.subplot(2, 1, 1)
 plt.title("MACD chart")
 plt.plot(stock_data.index, stock_data["MACD"], stock_data["MACD_signal"])
 for i in range(len(stock_data.index)):
-    if stock_data["MACD_sign"].iloc[i] == "매수":
-        plt.scatter(stock_data.index[i], stock_data["MACD"].iloc[i], color="r")
-    elif stock_data["MACD_sign"].iloc[i] == "매도":
-        plt.scatter(stock_data.index[i], stock_data["MACD"].iloc[i], color="b")
+    if strategy.iloc[i] == "매수":
+        plt.scatter(stock_data.index[i], stock_data["MACD"].iloc[i], color="r", marker='^')
+    elif strategy.iloc[i] == "매도":
+        plt.scatter(stock_data.index[i], stock_data["MACD"].iloc[i], color="b", marker='v')
 plt.axhline(y=0, color='r', linewidth=1)
 plt.xticks(fontsize=6, rotation=45)
-plt.xticks(np.arange(0, 64, 8), xtick)
+plt.xticks(np.arange(0, 700, 50), xtick)
 
 # Oscillator bar
 plt.subplot(2, 1, 2)
@@ -118,23 +121,23 @@ plt.bar(list(stock_data.index), list(oscillator.where(oscillator > 0)), 0.7)
 plt.bar(list(stock_data.index), list(oscillator.where(oscillator < 0)), 0.7)
 plt.axhline(y=0, color='r', linewidth=1)
 plt.xticks(fontsize=6, rotation=45)
-plt.xticks(np.arange(0, 64, 8), xtick)
+plt.xticks(np.arange(0, 700, 50), xtick)
 
 plt.subplots_adjust(hspace=0.8)
 plt.show()
 """
 
-
 # backtesting
-stock_data = SetInitial()
 initial_money = int(input("initial money : "))
 testing = Trade(initial_money)
 
 sell_count = 0
 buy_count = 0
-strategy = stock_data['MACD_sign_with_OBV']
 
-for i in range(len(stock_data.index)):
+plt.title("매매 chart")
+plt.plot(stock_data.index, stock_data['종가'])
+
+for i in range(len(stock_data.index) - 1):
     if strategy.iloc[i] == '매수' or strategy.iloc[i] == '매도':
         print("\033[0m", end="")
         if strategy.iloc[i] == '매수':
@@ -144,6 +147,7 @@ for i in range(len(stock_data.index)):
                       + " 시가 : " + str(stock_data['시가'].iloc[i]), end="")
                 print("\n자금 : " + str(testing.initial_funds) + " 보유 주식 : " + str(testing.stock_amount) + '\n')
                 buy_count += 1
+                plt.scatter(stock_data.index[i], stock_data['종가'].iloc[i], color="r", marker='^')
 
         elif strategy.iloc[i] == '매도':
             if testing.SellStock(stock_data['시가'].iloc[i]):
@@ -152,12 +156,27 @@ for i in range(len(stock_data.index)):
                       + " 시가 : " + str(stock_data['시가'].iloc[i]), end="")
                 print("\n자금 : " + str(testing.initial_funds) + " 보유 주식 : " + str(testing.stock_amount) + '\n')
                 sell_count += 1
+                plt.scatter(stock_data.index[i], stock_data['종가'].iloc[i], color="b", marker='v')
+    """
+    if i == 0:
+        if testing.BuyStock(stock_data['시가'].iloc[i]):
+            print('\033[95m', end="")
+            print("매수 " + str(stock_data['날짜'].iloc[i]) + " 시가 : " + str(
+                stock_data['시가'].iloc[i]), end="")
+            print("\n자금 : " + str(testing.initial_funds) + " 보유 주식 : " + str(testing.stock_amount) + '\n')
+            buy_count += 1
+    """
 
-    elif i == len(stock_data.index) - 1:
-        if testing.SellStock(stock_data['시가'].iloc[i]):
-            sell_count += 1
-            print("매도 " + str(stock_data['날짜'].iloc[i]) + " " + " 시가 : " + str(stock_data['시가'].iloc[i]))
+if testing.SellStock(stock_data['시가'].iloc[++i]):
+    print("매도 " + str(stock_data['날짜'].iloc[i]) + " " + " 시가 : " + str(stock_data['시가'].iloc[i]))
+    sell_count += 1
+    plt.scatter(stock_data.index[i], stock_data['종가'].iloc[i], color="b", marker='v')
 
 print("\nsell_count : " + str(sell_count) + "\nbuy_count : " + str(buy_count))
 print("before investment : " + str(initial_money))
 print("after investment : " + str(testing.initial_funds))
+
+plt.axhline(y=0, color='r', linewidth=1)
+plt.xticks(fontsize=6, rotation=45)
+plt.xticks(np.arange(0, 700, 50), xtick)
+plt.show()
