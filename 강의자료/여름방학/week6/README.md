@@ -8,3 +8,6 @@
 
 # 신경망(퍼셉트론) 관련 예제
 - https://playground.tensorflow.org/
+
+# 딥러닝 정리 블로그
+https://wikidocs.net/53560
